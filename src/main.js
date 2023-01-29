@@ -5,9 +5,14 @@ import router from './router'
 import './assets/css/global.css'
 
 import axios from "axios"
-Vue.prototype.$http=axios  //挂载
 axios.defaults.baseURL='https://www.liulongbin.top:8888/api/private/v1/'  //配置请求的根路径
-
+//请求拦截器
+axios.interceptors.request.use(config=>{
+  config.headers.Authorization = window.sessionStorage.getItem('token')
+  console.log(config)
+  return config
+})
+Vue.prototype.$http=axios  //挂载
 //手动配置ElementUI
 import ElementUI from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
