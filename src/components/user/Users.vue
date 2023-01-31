@@ -6,7 +6,6 @@
       <el-breadcrumb-item>用户管理</el-breadcrumb-item>
       <el-breadcrumb-item>用户列表</el-breadcrumb-item>
     </el-breadcrumb>
-
     <!--  卡片视图区域  -->
     <el-card class="box-card">
       <!--   搜索和添加区   -->
@@ -31,7 +30,7 @@
         <el-table-column prop="email" label="邮箱" width="180"></el-table-column>
         <el-table-column prop="mobile" label="电话" width="180"></el-table-column>
         <el-table-column prop="role_name" label="角色" width="180"></el-table-column>
-        <el-table-column prop="mg_state" label="状态" width="180" >
+        <el-table-column prop="mg_state" label="状态" width="180">
           <!--     作用域插槽     -->
           <template slot-scope="scope">
             <el-switch
@@ -46,7 +45,7 @@
         <el-table-column label="操作" width="180">
           <template slot-scope="scope">
             <!--      修改按钮      -->
-            <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+            <el-button type="primary" icon="el-icon-edit" size="mini" @click="showEditDialog(scope.row.id)"></el-button>
             <!--      删除按钮      -->
             <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
             <!--      分配角色按钮      -->
@@ -68,13 +67,13 @@
           :total="total">
       </el-pagination>
     </el-card>
-<!--  添加用户对话框  -->
+    <!--  添加用户对话框  -->
     <el-dialog
         title="添加用户"
         :visible.sync="addDialogVisible"
         width="50%"
         @close="addDialogVisibleClosed">
-<!--   内容主体区   -->
+      <!--   内容主体区   -->
       <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="addForm.username"></el-input>
@@ -89,13 +88,23 @@
           <el-input v-model="addForm.mobile"></el-input>
         </el-form-item>
       </el-form>
-
-
       <span slot="footer" class="dialog-footer">
-    <el-button @click="addDialogVisible = false">取 消</el-button>
-    <el-button type="primary" @click="addDialogVisible=false">确 定</el-button>
-  </span>
+        <el-button @click="addDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="addUser">确 定</el-button>
+      </span>
     </el-dialog>
+    <!-- 修改用户的对话框 -->
+    <el-dialog
+        title="修改用户"
+        :visible.sync="edItDialogVisible"
+        width="50%">
+      <span>这是一段信息</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="edItDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="edItDialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -104,18 +113,18 @@ export default {
   name: "users",
   data() {
     //验证邮箱规则
-    let checkEmail=(rule,value,cb)=>{
-      const regEmail =/^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/;
-      if (regEmail.test(value)){
-          //合法邮箱
+    let checkEmail = (rule, value, cb) => {
+      const regEmail = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+(.[a-zA-Z0-9_-])+/;
+      if (regEmail.test(value)) {
+        //合法邮箱
         return cb()
       }
       cb(new Error("请输入合法邮箱"))
     }
     //验证手机规则
-    let checkMobile=(rule,value,cb)=>{
+    let checkMobile = (rule, value, cb) => {
       const regMobile = /^((13[0-9])|(17[0-1,6-8])|(15[^4,\\D])|(18[0-9]))\d{8}$/;
-      if (regMobile.test(value)){
+      if (regMobile.test(value)) {
         return cb()
       }
       cb(new Error("请输入合法手机号"))
@@ -133,33 +142,37 @@ export default {
       userList: [],
       total: 0,
       //控制添加用户对话框的显示与隐藏
-      addDialogVisible:false,
+      addDialogVisible: false,
+      //控制修改用户对话框的显示与隐藏
+      edItDialogVisible: false,
       //添加用户的表单数据
-      addForm:{
-        username:'',
+      addForm: {
+        username: '',
         password: '',
-        email:'',
-        mobile:''
+        email: '',
+        mobile: ''
       },
       //添加用户的表单验证
-      addFormRules:{
-        username:[
-          {required:true,message:"请输入用户名",trigger:'blur'},
-          {min:3,max:10,message: "用户名长度在3-10之间",trigger:'blur'}
+      addFormRules: {
+        username: [
+          {required: true, message: "请输入用户名", trigger: 'blur'},
+          {min: 3, max: 10, message: "用户名长度在3-10之间", trigger: 'blur'}
         ],
-        password:[
-          {required:true,message:"请输入密码",trigger:'blur'},
-          {min:8,max:15,message: "密码长度在8-15之间",trigger:'blur'}
+        password: [
+          {required: true, message: "请输入密码", trigger: 'blur'},
+          {min: 8, max: 15, message: "密码长度在8-15之间", trigger: 'blur'}
         ],
-        email:[
-          {required:true,message:"请输入邮箱地址",trigger:'blur'},
-          {validator:checkEmail,trigger: 'blur'}
+        email: [
+          {required: true, message: "请输入邮箱地址", trigger: 'blur'},
+          {validator: checkEmail, trigger: 'blur'}
         ],
-        mobile:[
-          {required:true,message:"请输入手机号",trigger:'blur'},
-          {validator:checkMobile,trigger: 'blur'}
+        mobile: [
+          {required: true, message: "请输入手机号", trigger: 'blur'},
+          {validator: checkMobile, trigger: 'blur'}
         ]
-      }
+      },
+      //查询到的用户信息
+      editForm:{}
 
     }
   },
@@ -182,19 +195,42 @@ export default {
       this.queryInfo.pagenum = newPage
       this.getUserList()
     },
-    async userStatusChange(userInfo){
+    async userStatusChange(userInfo) {
       console.log(userInfo)
-      const {data:res} = await this.$http.put(`users/${userInfo.id}/state/${userInfo.mg_state}`)
+      const {data: res} = await this.$http.put(`users/${userInfo.id}/state/${userInfo.mg_state}`)
       console.log(res.meta.status)
-      if (res.meta.status!==200){
-        userInfo.mg_state=!userInfo.mg_state
+      if (res.meta.status !== 200) {
+        userInfo.mg_state = !userInfo.mg_state
         this.$message.error("修改失败")
       }
       this.$message.success("更新成功")
     },
     //监听添加用户对话框的关闭事件
-    addDialogVisibleClosed(){
+    addDialogVisibleClosed() {
       this.$refs.addFormRef.resetFields()
+    },
+    //点击按钮，添加用户
+    addUser() {
+      this.$refs.addFormRef.validate(async valid => {
+        if (!valid) return
+        //可以发起添加用户的请求
+        const {data: res} = await this.$http.post('users', this.addForm)
+        if (res.meta.status !== 201) {
+          this.$message.error("添加用户失败！")
+        }
+        this.$message.success("添加用户成功！")
+        //隐藏对话框
+        this.addDialogVisible = false;
+        //刷新列表，重新获取用户列表
+        this.getUserList()
+      })
+    },
+    //展示修改用户信息的对话框
+    async showEditDialog(id) {
+       const {data:res} =await this.$http.get('users/'+id)
+      if (res.meta.status!==200) return this.$message.error("查询用户信息失败")
+      this.editForm=res.data
+      this.edItDialogVisible=true;
     }
   },
   created() {
